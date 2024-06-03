@@ -1,0 +1,236 @@
+
+<!-- 
+    Memória játék v4.00
+    Vámosi László 2024.01.23.
+
+  -->
+<!DOCTYPE html>
+<html lang="hu">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Memóriajáték</title>
+    <style>
+        .card {
+            width: 77px;
+            height: 77px;
+            margin: 5px;
+            display: inline-block;
+            background-color: #ccc;
+            text-align: center;
+            line-height: 77px;
+            font-size: 60px;
+            /* 20px */
+            cursor: pointer;
+            vertical-align: middle;
+        }
+
+        #grat {
+            font-size: 20px;
+        }
+
+        .kozep {
+            width: 348px;
+            margin: auto;
+        }
+
+        h6 {
+            color: #ccc;
+        }
+
+    </style>
+</head>
+
+<body>
+    <div class="kozep">
+        <h1>Memóriajáték</h1>
+        <label for="nev">Neved:</label>
+        <input type="text" id="nev">
+        <p id="turns">Fordítások száma: 0</p>
+    </div>
+    <div id="board" class="kozep"></div>
+    <h6 class="kozep">Vámosi László, 2024.01.23. v4.00</h6>
+    <div class="kozep"><button id="btn" class="kozep">Toggle Teljesképernyő</button></div>
+
+    <div id="elozo" class="kozep"></div>
+    <div id="grat" class="kozep"></div>
+    <script>
+        function toggleTeljesKepernyo() {
+            var elem = document.documentElement;
+
+            if (
+                !document.fullscreenElement &&
+                !document.mozFullScreenElement &&
+                !document.webkitFullscreenElement &&
+                !document.msFullscreenElement
+            ) {
+
+
+                if (elem.requestFullscreen) {
+                    elem.requestFullscreen();
+                } else if (elem.mozRequestFullScreen) {
+                    elem.mozRequestFullScreen();
+                } else if (elem.webkitRequestFullscreen) {
+                    elem.webkitRequestFullscreen();
+                } else if (elem.msRequestFullscreen) {
+                    elem.msRequestFullscreen();
+                }
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                } else if (document.mozCancelFullScreen) {
+                    document.mozCancelFullScreen();
+                } else if (document.webkitExitFullscreen) {
+                    document.webkitExitFullscreen();
+                } else if (document.msExitFullscreen) {
+                    document.msExitFullscreen();
+                }
+
+            }
+
+        }
+
+
+
+            let btn = document.getElementById("btn")
+            btn.addEventListener("click", toggleTeljesKepernyo);
+
+
+
+
+
+
+
+
+            // Kártya típusok
+            const animals = ['🐶', '🐱', '🐭', '🐹', '🐰', '🦊', '🐻', '🐼'];
+            // const betuk1 = ['A', 'B', 'C', 'D'];
+            // const betuk2 = ['a', 'b', 'c', 'd'];
+            // const betuk = ['Aa', 'Bb', 'Cc', 'Dd']
+            // Kártyák tömbje
+            const cards = [...animals, ...animals];
+            // const cards=[...betuk1,...betuk1]
+            // Keverés
+            cards.sort(() => Math.random() - 0.5);
+
+            // Játék tábla létrehozása
+            const board = document.getElementById('board');
+            const turnsDisplay = document.getElementById('turns');
+            let flippedCards = [];
+            let turns = 0;
+
+            function createBoard() {
+                for (let i = 0; i < cards.length; i++) {
+                    const card = document.createElement('div');
+                    card.classList.add('card');
+                    card.dataset.index = i;
+                    card.addEventListener('click', flipCard);
+                    board.appendChild(card);
+                }
+            }
+
+            function flipCard() {
+
+                const index = this.dataset.index;
+                this.textContent = cards[index];
+                turns++
+                turnsDisplay.textContent = `Fordítások száma: ${turns}`;
+                this.removeEventListener('click', flipCard);
+                flippedCards.push({ index, element: this });
+
+                if (flippedCards.length === 2) {
+                    setTimeout(checkMatch, 200);
+                }
+            }
+
+            function checkMatch() {
+                const [card1, card2] = flippedCards; //destrukturáló kifejezés. 
+
+                if (cards[card1.index] === cards[card2.index]) {
+                    card1.element.style.backgroundColor = '#8aff8a';
+                    card2.element.style.backgroundColor = '#8aff8a';
+                    card1.element.classList.add('paired');
+                    card2.element.classList.add('paired');
+
+                    // Sikeres párosítás esetén
+
+                } else {
+                    card1.element.textContent = '';
+                    card1.element.addEventListener('click', flipCard);
+                    card2.element.textContent = '';
+                    card2.element.addEventListener('click', flipCard);
+                }
+
+                flippedCards = [];
+
+                // Ellenőrzés a háttérszínre
+
+                let c = document.querySelectorAll('.card[style*="background-color: rgb(138, 255, 138)"]');
+                console.log("Zöld kártyák száma: ", c.length);
+
+                if (document.querySelectorAll('.card:not([style*="background-color: rgb(138, 255, 138)"])').length === 0) {
+                    // Ha minden kártya párosítva van
+                    saveGameData()
+                    console.log(`Gratulálunk! ${ujAdat.nev}, nyertél ${turns} fordítással.`)//,
+
+                    //document.getElementById("grat").innerText += `\n-Gratulálunk! ${ujAdat.nev}, nyertél ${turns} fordítással.`
+                    //document.getElementById("grat").innerHTML += "<br><h3>Gratulálunk! Nyertél " + `${turns}` + " fordítással.<h3>"
+
+                }
+            }
+            ujAdat = {}
+            function saveGameData() {
+                console.log("adat :", adat)
+                // ujnev upper
+                ujAdat = {
+                    nev: document.getElementById('nev').value.charAt(0).toUpperCase()+ document.getElementById('nev').value.slice(1) || "névtelen",
+                    turns: turns,
+                    datum: new Date().toLocaleString()
+                }
+                console.log("save: ", adat, ujAdat)
+                let max = Math.max(...adat.map(o => o.turns)) || 1000
+                let min = Math.min(...adat.map(o => o.turns)) || 1000
+                console.log(...adat.map(o => o.turns))
+                const eredetiString = ujAdat.nev;
+                const modositottString = eredetiString.charAt(0).toUpperCase() + eredetiString.slice(1);
+
+                console.log(modositottString);  // "Laci"
+
+                let txt = `Gratulálunk! ${ujAdat.nev.charAt(0).toUpperCase() + eredetiString.slice(1)}, ${min > turns ? 'nyertél' : 'nem nyertél'} ${turns} fordítással.`// [${min} - ${max}]` 
+
+
+                adat.unshift(ujAdat)
+                if (adat.length > 5) {
+                    adat.pop();
+
+                }
+                console.log(adat)
+                let adatString = JSON.stringify(adat)
+                localStorage.setItem('lista', adatString);
+                console.log(adatString)
+
+                //
+
+                console.log(txt)
+                document.getElementById("grat").innerText += txt;
+                
+            }
+
+            let adat = [];
+            function loadGameData() {
+                let adatString = localStorage.getItem('lista') || [];
+                adat = JSON.parse(adatString)
+                console.log("load-----", adatString, adat)
+                document.getElementById("elozo").innerText = `Előző ${adat.length} játék:`
+                for (let elem of adat) {
+                    document.getElementById("elozo").innerText += `\n${elem.nev}, ${elem.turns},  ${elem.datum}`
+
+                }
+            }
+            createBoard();
+            loadGameData()
+    </script>
+</body>
+
+</html>
